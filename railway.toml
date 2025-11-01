@@ -4,7 +4,7 @@
 [services.api]
   root = "api"
   start = "./dnsprop-api"
-  build = "go build -o dnsprop-api ./cmd/server"
+  build = "go mod download && go build -o dnsprop-api ./cmd/server"
   env = [
     "PORT",
     "LOG_LEVEL",
@@ -19,6 +19,6 @@
 
 [services.web]
   root = "web"
-  start = "pnpm preview --host 0.0.0.0 --port $PORT"
-  build = "pnpm i --frozen-lockfile && pnpm build"
+  start = "npm run preview -- --host 0.0.0.0 --port $PORT"
+  build = "npm ci && npm run build"
   env = ["VITE_API_BASE_URL"]

@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["go"]
+
+[phases.build]
+cmds = ["go build -o dnsprop-api ./cmd/server"]
+
+[start]
+cmd = "./dnsprop-api"
+
