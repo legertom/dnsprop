@@ -3,8 +3,6 @@
 
 [services.api]
   root = "api"
-  start = "./dnsprop-api"
-  build = "go mod download && go build -o dnsprop-api ./cmd/server"
   env = [
     "PORT",
     "LOG_LEVEL",
@@ -16,9 +14,13 @@
     "ENABLE_DNSSEC",
     "METRICS_ADDR"
   ]
+  [services.api.build]
+  builder = "Docker"
+  dockerfilePath = "Dockerfile"
 
 [services.web]
   root = "web"
-  start = "npm run preview -- --host 0.0.0.0 --port $PORT"
-  build = "npm ci && npm run build"
   env = ["VITE_API_BASE_URL"]
+  [services.web.build]
+  builder = "Docker"
+  dockerfilePath = "Dockerfile"
