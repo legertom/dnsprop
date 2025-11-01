@@ -45,6 +45,42 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("ok"))
 }
 
+// ReadyzHandler performs a lightweight resolver sanity check.
+// It queries a small subset of resolvers with a tight timeout and returns 200 if any responds.
+func ReadyzHandler(cfg *config.Config, cache resolver.Cache) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		servers := cfg.Resolvers
+		if len(servers) > 3 {
+			servers = servers[:3]
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), minDuration(500*time.Millisecond, cfg.RequestTimeout))
+		defer cancel()
+		results := resolver.Resolve(ctx, "example.com", "A", servers, false, 400*time.Millisecond, cache, 0)
+		ok := false
+		for _, res := range results {
+			if res.Status != "error" && res.Status != "timeout" {
+				ok = true
+				break
+			}
+		}
+		w.Header().Set("content-type", "application/json")
+		if ok {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]any{"status": "ok"})
+			return
+		}
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]any{"status": "degraded"})
+	}
+}
+
+func minDuration(a, b time.Duration) time.Duration {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func ResolveHandler(cfg *config.Config, cache resolver.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req ResolveRequest

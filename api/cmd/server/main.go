@@ -21,6 +21,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("invalid configuration: %v", err)
+	}
 	r := chi.NewRouter()
 
 	// Initialize logging
@@ -47,6 +50,7 @@ func main() {
 	}))
 
 	r.Get("/api/healthz", apiPkg.Healthz)
+	r.Get("/api/readyz", apiPkg.ReadyzHandler(cfg, resolverCache))
 	r.Post("/api/resolve", apiPkg.ResolveHandler(cfg, resolverCache))
 
 	srv := &http.Server{

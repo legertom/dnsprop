@@ -23,20 +23,20 @@ type Result struct {
 	Authority []string
 	When      time.Time
 	// CacheTTL is the recommended TTL for this result; not serialized in API JSON
-	CacheTTL  time.Duration `json:"-"`
+	CacheTTL time.Duration `json:"-"`
 	// QueriedAt is when this result was originally obtained; not serialized, used for cache expiry
 	QueriedAt time.Time `json:"-"`
 }
 
 var defaultRegions = map[string]string{
-	"1.1.1.1":           "Cloudflare",
-	"1.0.0.1":           "Cloudflare",
-	"8.8.8.8":           "Google",
-	"8.8.4.4":           "Google",
-	"9.9.9.9":           "Quad9",
-	"149.112.112.112":   "Quad9",
-	"208.67.222.222":    "OpenDNS",
-	"208.67.220.220":    "OpenDNS",
+	"1.1.1.1":         "Cloudflare",
+	"1.0.0.1":         "Cloudflare",
+	"8.8.8.8":         "Google",
+	"8.8.4.4":         "Google",
+	"9.9.9.9":         "Quad9",
+	"149.112.112.112": "Quad9",
+	"208.67.222.222":  "OpenDNS",
+	"208.67.220.220":  "OpenDNS",
 }
 
 // Cache defines the minimal interface used by resolver for caching.

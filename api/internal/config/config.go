@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -65,6 +66,35 @@ func Load() (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+// Validate performs sanity checks on loaded configuration.
+func (c *Config) Validate() error {
+	if len(c.CorsOrigins) == 0 {
+		return fmt.Errorf("CORS_ORIGINS must not be empty")
+	}
+	if len(c.Resolvers) == 0 {
+		return fmt.Errorf("RESOLVERS must not be empty")
+	}
+	if c.RequestTimeout <= 0 {
+		return fmt.Errorf("REQUEST_TIMEOUT must be > 0")
+	}
+	if c.CacheTTL <= 0 {
+		return fmt.Errorf("CACHE_TTL must be > 0")
+	}
+	if c.CacheMaxEntries <= 0 {
+		return fmt.Errorf("CACHE_MAX_ENTRIES must be > 0")
+	}
+	if c.RateLimitRPS <= 0 {
+		return fmt.Errorf("RATE_LIMIT_RPS must be > 0")
+	}
+	if c.RateLimitBurst <= 0 {
+		return fmt.Errorf("RATE_LIMIT_BURST must be > 0")
+	}
+	if c.RateLimitTTL <= 0 {
+		return fmt.Errorf("RATE_LIMIT_TTL must be > 0")
+	}
+	return nil
 }
 
 func getenv(key, def string) string {
