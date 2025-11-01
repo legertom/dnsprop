@@ -5,15 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 
 	apiPkg "github.com/legertom/dnsprop/api/internal/api"
 	"github.com/legertom/dnsprop/api/internal/cache"
 	"github.com/legertom/dnsprop/api/internal/config"
 	"github.com/legertom/dnsprop/api/internal/logging"
-	"github.com/legertom/dnsprop/api/internal/ratelimit"
 )
 
 func main() {
@@ -24,8 +20,6 @@ func main() {
 	if err := cfg.Validate(); err != nil {
 		log.Fatalf("invalid configuration: %v", err)
 	}
-	r := chi.NewRouter()
-
 	// Initialize logging
 	logging.Init(cfg.LogLevel)
 
@@ -35,23 +29,7 @@ func main() {
 		log.Fatalf("cache init: %v", err)
 	}
 
-	// Standard middlewares
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(logging.StructuredLogger)
-	r.Use(ratelimit.LimiterMiddleware(cfg.RateLimitRPS, cfg.RateLimitBurst, cfg.RateLimitTTL))
-
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   cfg.CorsOrigins,
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
-
-	r.Get("/api/healthz", apiPkg.Healthz)
-	r.Get("/api/readyz", apiPkg.ReadyzHandler(cfg, resolverCache))
-	r.Post("/api/resolve", apiPkg.ResolveHandler(cfg, resolverCache))
+	r := apiPkg.NewRouter(cfg, resolverCache)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

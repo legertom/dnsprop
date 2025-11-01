@@ -1,5 +1,8 @@
 # Simple commands for local development
-.PHONY: api dev build test fmt vet lint tidy tools web-install web-env web-dev web-build web-preview
+.PHONY: api dev build test fmt vet lint tidy tools web-install web-env web-dev web-build web-preview int-test smoke
+
+# Base URL for API (used by smoke tests)
+API_BASE ?= http://localhost:8080
 
 # Run the API server once (no hot reload)
 api:
@@ -50,3 +53,16 @@ web-build: web-install
 
 web-preview: web-install
 	npm --prefix web run preview
+
+# Integration tests (network required)
+int-test:
+	go -C api test -tags=integration ./...
+
+# Smoke test against a running API (local or deployed)
+smoke:
+	@echo "Pinging $(API_BASE)/api/healthz"
+	@curl -fsS $(API_BASE)/api/healthz && echo
+	@echo "Probing $(API_BASE)/api/readyz"
+	@curl -fsS $(API_BASE)/api/readyz && echo
+	@echo "Resolve example.com A"
+	@curl -fsS -H 'content-type: application/json' -d '{"name":"example.com","type":"A"}' $(API_BASE)/api/resolve | head -c 400 ; echo

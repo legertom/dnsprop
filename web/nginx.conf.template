@@ -2,11 +2,27 @@ server {
     listen ${PORT};
     server_name _;
 
+    # Prevent Nginx from adding scheme/port in redirects so Railway Edge stays on HTTPS
+    absolute_redirect off;
+    port_in_redirect off;
+
     root /usr/share/nginx/html;
     index index.html;
 
+    # Explicitly serve SPA index without redirects
+    location = / {
+        try_files /index.html =404;
+    }
+
+    # SPA routing: serve files if they exist, otherwise index.html
     location / {
-        try_files $uri $uri/ /index.html;
+        try_files $uri @index;
+    }
+
+    # Fallback serves the SPA index via internal rewrite (no 301)
+    location @index {
+        internal;
+        rewrite ^ /index.html break;
     }
 
     access_log /dev/stdout;

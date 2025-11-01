@@ -99,6 +99,20 @@ curl -s localhost:8080/api/resolve \
   -d '{"name":"example.com","type":"A"}' | jq
 ```
 
+## Testing
+
+### Unit tests
+- Backend: `make test` or `go -C api test ./...`
+
+### Integration tests (network)
+- Resolver integration tests are behind the `integration` build tag.
+- Run: `make int-test` or `go -C api test -tags=integration ./internal/dnsresolver -run Integration`
+- Tests skip if offline (all upstream timeouts).
+
+### Smoke test (local or Railway)
+- Run against a base URL (defaults to localhost):
+  - `make smoke` (local) or `make smoke API_BASE=https://your-api.up.railway.app`
+
 ## Deploying on Railway
 Two services in one repo: `api` (Go) and `web` (React).
 
@@ -123,6 +137,10 @@ Option A — railway.toml (recommended monorepo):
 Set variables in Railway:
 - api: PORT (auto), CORS_ORIGINS=https://your-web.onrailway.app, RESOLVERS=1.1.1.1,8.8.8.8,9.9.9.9
 - web: PORT (auto), VITE_API_BASE_URL=https://your-api.up.railway.app
+
+Health checks
+- Configure the API service health check path to `/api/readyz` in Railway so deploys wait for resolver sanity to pass.
+- `/api/healthz` always returns 200; `/api/readyz` probes a few resolvers and returns 200 or 503.
 
 Option B — create two services in dashboard, set the same build/start commands and env vars.
 
