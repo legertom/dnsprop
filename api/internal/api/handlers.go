@@ -9,6 +9,7 @@ import (
 
 	"github.com/legertom/dnsprop/api/internal/config"
 	resolver "github.com/legertom/dnsprop/api/internal/dnsresolver"
+	"github.com/legertom/dnsprop/api/internal/validation"
 )
 
 type ResolveRequest struct {
@@ -44,22 +45,40 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("ok"))
 }
 
-func ResolveHandler(cfg *config.Config) http.HandlerFunc {
+func ResolveHandler(cfg *config.Config, cache resolver.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req ResolveRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
-		req.Name = strings.TrimSpace(req.Name)
+
+		// Validate and normalize domain name
+		var err error
+		req.Name, err = validation.ValidateDomainName(req.Name)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Validate record type
 		req.Type = strings.ToUpper(strings.TrimSpace(req.Type))
-		if req.Name == "" || req.Type == "" {
-			http.Error(w, "name and type required", http.StatusBadRequest)
+		if err := validation.ValidateRecordType(req.Type); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		if len(req.Servers) == 0 {
 			req.Servers = cfg.Resolvers
 		}
+
+		// Validate custom servers if provided
+		if len(req.Servers) > 0 {
+			if err := validation.ValidateServers(req.Servers, 50); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
 		servers := dedupe(req.Servers)
 		if len(servers) == 0 {
 			http.Error(w, "no resolvers configured", http.StatusBadRequest)
@@ -69,7 +88,7 @@ func ResolveHandler(cfg *config.Config) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), cfg.RequestTimeout)
 		defer cancel()
 
-		results := resolver.Resolve(ctx, req.Name, req.Type, servers, req.DNSSEC, cfg.RequestTimeout)
+		results := resolver.Resolve(ctx, req.Name, req.Type, servers, req.DNSSEC, cfg.RequestTimeout, cache, cfg.CacheTTL)
 
 		out := ResolveResponse{Name: req.Name, Type: req.Type, Results: make([]Result, 0, len(results))}
 		for _, rr := range results {

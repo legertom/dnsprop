@@ -12,10 +12,12 @@ web/.vite/
 
 # Go
 api/bin/
+api/tmp/
 api/dnsprop-api
 api/*.log
 
 # Build artifacts
+/bin/
 /dist/
 /coverage/
 

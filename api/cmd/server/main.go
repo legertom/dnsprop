@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/cors"
 
 	apiPkg "github.com/legertom/dnsprop/api/internal/api"
+	"github.com/legertom/dnsprop/api/internal/cache"
 	"github.com/legertom/dnsprop/api/internal/config"
 )
 
@@ -19,6 +20,12 @@ func main() {
 	}
 
 	r := chi.NewRouter()
+
+	// Initialize resolver cache
+	resolverCache, err := cache.NewLRU(cfg.CacheMaxEntries, cfg.CacheTTL)
+	if err != nil {
+		log.Fatalf("cache init: %v", err)
+	}
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   cfg.CorsOrigins,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
@@ -28,7 +35,7 @@ func main() {
 	}))
 
 	r.Get("/api/healthz", apiPkg.Healthz)
-	r.Post("/api/resolve", apiPkg.ResolveHandler(cfg))
+	r.Post("/api/resolve", apiPkg.ResolveHandler(cfg, resolverCache))
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

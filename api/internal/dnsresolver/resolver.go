@@ -22,6 +22,10 @@ type Result struct {
 	Answers   []Answer
 	Authority []string
 	When      time.Time
+	// CacheTTL is the recommended TTL for this result; not serialized in API JSON
+	CacheTTL  time.Duration `json:"-"`
+	// QueriedAt is when this result was originally obtained; not serialized, used for cache expiry
+	QueriedAt time.Time `json:"-"`
 }
 
 var defaultRegions = map[string]string{
@@ -35,7 +39,13 @@ var defaultRegions = map[string]string{
 	"208.67.220.220":    "OpenDNS",
 }
 
-func Resolve(ctx context.Context, name, qtype string, servers []string, dnssec bool, perQueryTimeout time.Duration) []Result {
+// Cache defines the minimal interface used by resolver for caching.
+type Cache interface {
+	Get(key string) (Result, bool)
+	Add(key string, val Result, ttl time.Duration)
+}
+
+func Resolve(ctx context.Context, name, qtype string, servers []string, dnssec bool, perQueryTimeout time.Duration, cache Cache, maxCacheTTL time.Duration) []Result {
 	maxParallel := 20
 	if len(servers) < maxParallel {
 		maxParallel = len(servers)
@@ -48,7 +58,27 @@ func Resolve(ctx context.Context, name, qtype string, servers []string, dnssec b
 		sem <- struct{}{}
 		go func() {
 			defer func() { <-sem }()
+
+			key := cacheKey(name, qtype, server, dnssec)
+			if cache != nil {
+				if cached, ok := cache.Get(key); ok {
+					if cached.CacheTTL > 0 && time.Since(cached.QueriedAt) <= cached.CacheTTL {
+						cached.When = time.Now().UTC()
+						out <- cached
+						return
+					}
+					// stale -> fall through to requery
+				}
+			}
+
 			res := queryOne(ctx, server, name, qtype, dnssec, perQueryTimeout)
+			// Cap TTL by maxCacheTTL if provided (>0)
+			if maxCacheTTL > 0 && (res.CacheTTL <= 0 || res.CacheTTL > maxCacheTTL) {
+				res.CacheTTL = maxCacheTTL
+			}
+			if cache != nil && res.Status != "error" {
+				cache.Add(key, res, res.CacheTTL)
+			}
 			out <- res
 		}()
 	}
@@ -66,10 +96,12 @@ func Resolve(ctx context.Context, name, qtype string, servers []string, dnssec b
 }
 
 func queryOne(ctx context.Context, server, name, qtype string, dnssec bool, perQueryTimeout time.Duration) Result {
+	now := time.Now().UTC()
 	result := Result{
-		Server: normalizeServer(server),
-		Region: regionFor(server),
-		When:   time.Now().UTC(),
+		Server:    normalizeServer(server),
+		Region:    regionFor(server),
+		When:      now,
+		QueriedAt: now,
 	}
 
 	qtypeCode := mapType(qtype)
@@ -135,9 +167,11 @@ func queryOne(ctx context.Context, server, name, qtype string, dnssec bool, perQ
 	answers := parseAnswers(r.Answer)
 	if len(answers) == 0 {
 		result.Status = "noanswer"
+		result.CacheTTL = negativeTTLFromNs(r.Ns)
 	} else {
 		result.Status = "ok"
 		result.Answers = answers
+		result.CacheTTL = minAnswerTTL(answers)
 	}
 	if len(r.Ns) > 0 {
 		result.Authority = extractNames(r.Ns)
@@ -172,6 +206,35 @@ func parseAnswers(rrs []dns.RR) []Answer {
 	return out
 }
 
+func minAnswerTTL(ans []Answer) time.Duration {
+	if len(ans) == 0 {
+		return 0
+	}
+	min := ans[0].TTL
+	for _, a := range ans[1:] {
+		if a.TTL < min {
+			min = a.TTL
+		}
+	}
+	return time.Duration(min) * time.Second
+}
+
+func negativeTTLFromNs(rrs []dns.RR) time.Duration {
+	// Default negative TTL cap if SOA not present
+	const def = 30 * time.Second
+	if len(rrs) == 0 {
+		return def
+	}
+	for _, rr := range rrs {
+		if soa, ok := rr.(*dns.SOA); ok {
+			if soa.Minttl > 0 {
+				return time.Duration(soa.Minttl) * time.Second
+			}
+		}
+	}
+	return def
+}
+
 func extractNames(rrs []dns.RR) []string {
 	out := make([]string, 0, len(rrs))
 	for _, rr := range rrs {
@@ -204,6 +267,18 @@ func isTimeout(err error) bool {
 		return true
 	}
 	return strings.Contains(strings.ToLower(err.Error()), "timeout")
+}
+
+func cacheKey(name, qtype, server string, dnssec bool) string {
+	// normalize components to avoid cache misses due to case/port
+	return normalizeServer(server) + "|" + strings.ToLower(name) + "|" + strings.ToUpper(qtype) + "|dnssec=" + boolToStr(dnssec)
+}
+
+func boolToStr(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
 }
 
 func mapType(t string) uint16 {

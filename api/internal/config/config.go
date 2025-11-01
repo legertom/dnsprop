@@ -2,17 +2,20 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type Config struct {
-	Port           string
-	LogLevel       string
-	CorsOrigins    []string
-	Resolvers      []string
-	RequestTimeout time.Duration
-	EnableDNSSEC   bool
+	Port            string
+	LogLevel        string
+	CorsOrigins     []string
+	Resolvers       []string
+	RequestTimeout  time.Duration
+	EnableDNSSEC    bool
+	CacheTTL        time.Duration
+	CacheMaxEntries int
 }
 
 func Load() (*Config, error) {
@@ -27,6 +30,17 @@ func Load() (*Config, error) {
 		cfg.RequestTimeout = 2 * time.Second
 	}
 	cfg.EnableDNSSEC = strings.EqualFold(getenv("ENABLE_DNSSEC", "false"), "true")
+	if d, err := time.ParseDuration(getenv("CACHE_TTL", "30s")); err == nil {
+		cfg.CacheTTL = d
+	} else {
+		cfg.CacheTTL = 30 * time.Second
+	}
+	cfg.CacheMaxEntries = 5000
+	if v := getenv("CACHE_MAX_ENTRIES", ""); v != "" {
+		if n, err := strconv.Atoi(strings.TrimSpace(v)); err == nil && n > 0 {
+			cfg.CacheMaxEntries = n
+		}
+	}
 	return cfg, nil
 }
 
