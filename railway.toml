@@ -1,0 +1,24 @@
+[environments]
+  [environments.production]
+
+[services.api]
+  root = "api"
+  start = "./dnsprop-api"
+  build = "go build -o dnsprop-api ./cmd/server"
+  env = [
+    "PORT",
+    "LOG_LEVEL",
+    "CORS_ORIGINS",
+    "RESOLVERS",
+    "REQUEST_TIMEOUT",
+    "CACHE_TTL",
+    "CACHE_MAX_ENTRIES",
+    "ENABLE_DNSSEC",
+    "METRICS_ADDR"
+  ]
+
+[services.web]
+  root = "web"
+  start = "pnpm preview --host 0.0.0.0 --port $PORT"
+  build = "pnpm i --frozen-lockfile && pnpm build"
+  env = ["VITE_API_BASE_URL"]

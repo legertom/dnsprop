@@ -1,0 +1,53 @@
+package config
+
+import (
+	"os"
+	"strings"
+	"time"
+)
+
+type Config struct {
+	Port           string
+	LogLevel       string
+	CorsOrigins    []string
+	Resolvers      []string
+	RequestTimeout time.Duration
+	EnableDNSSEC   bool
+}
+
+func Load() (*Config, error) {
+	cfg := &Config{}
+	cfg.Port = getenv("PORT", "8080")
+	cfg.LogLevel = getenv("LOG_LEVEL", "info")
+	cfg.CorsOrigins = splitAndTrim(getenv("CORS_ORIGINS", "http://localhost:5173"), ",")
+	cfg.Resolvers = splitAndTrim(getenv("RESOLVERS", "1.1.1.1,8.8.8.8,9.9.9.9,208.67.222.222"), ",")
+	if d, err := time.ParseDuration(getenv("REQUEST_TIMEOUT", "2s")); err == nil {
+		cfg.RequestTimeout = d
+	} else {
+		cfg.RequestTimeout = 2 * time.Second
+	}
+	cfg.EnableDNSSEC = strings.EqualFold(getenv("ENABLE_DNSSEC", "false"), "true")
+	return cfg, nil
+}
+
+func getenv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
+
+func splitAndTrim(s, sep string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, sep)
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
