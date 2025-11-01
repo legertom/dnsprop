@@ -6,11 +6,14 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
 	apiPkg "github.com/legertom/dnsprop/api/internal/api"
 	"github.com/legertom/dnsprop/api/internal/cache"
 	"github.com/legertom/dnsprop/api/internal/config"
+	"github.com/legertom/dnsprop/api/internal/logging"
+	"github.com/legertom/dnsprop/api/internal/ratelimit"
 )
 
 func main() {
@@ -18,14 +21,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-
 	r := chi.NewRouter()
+
+	// Initialize logging
+	logging.Init(cfg.LogLevel)
 
 	// Initialize resolver cache
 	resolverCache, err := cache.NewLRU(cfg.CacheMaxEntries, cfg.CacheTTL)
 	if err != nil {
 		log.Fatalf("cache init: %v", err)
 	}
+
+	// Standard middlewares
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(logging.StructuredLogger)
+	r.Use(ratelimit.LimiterMiddleware(cfg.RateLimitRPS, cfg.RateLimitBurst, cfg.RateLimitTTL))
+
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   cfg.CorsOrigins,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},

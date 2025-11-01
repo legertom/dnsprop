@@ -16,6 +16,9 @@ type Config struct {
 	EnableDNSSEC    bool
 	CacheTTL        time.Duration
 	CacheMaxEntries int
+	RateLimitRPS    float64
+	RateLimitBurst  int
+	RateLimitTTL    time.Duration
 }
 
 func Load() (*Config, error) {
@@ -41,6 +44,26 @@ func Load() (*Config, error) {
 			cfg.CacheMaxEntries = n
 		}
 	}
+
+	// Rate limiting
+	cfg.RateLimitRPS = 1.0
+	if v := getenv("RATE_LIMIT_RPS", ""); v != "" {
+		if f, err := strconv.ParseFloat(strings.TrimSpace(v), 64); err == nil && f > 0 {
+			cfg.RateLimitRPS = f
+		}
+	}
+	cfg.RateLimitBurst = 5
+	if v := getenv("RATE_LIMIT_BURST", ""); v != "" {
+		if n, err := strconv.Atoi(strings.TrimSpace(v)); err == nil && n > 0 {
+			cfg.RateLimitBurst = n
+		}
+	}
+	if d, err := time.ParseDuration(getenv("RATE_LIMIT_TTL", "10m")); err == nil {
+		cfg.RateLimitTTL = d
+	} else {
+		cfg.RateLimitTTL = 10 * time.Minute
+	}
+
 	return cfg, nil
 }
 
