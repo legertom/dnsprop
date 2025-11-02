@@ -1,8 +1,6 @@
 module github.com/legertom/dnsprop/api
 
-go 1.23.0
-
-toolchain go1.23.4
+go 1.23
 
 require (
 	github.com/go-chi/chi/v5 v5.0.12
