@@ -5,17 +5,63 @@ DNS propagation checker — query many public resolvers worldwide and see when y
 **Live at:** [https://wtfdns.lol](https://wtfdns.lol) • **GitHub:** [https://github.com/legertom/dnsprop](https://github.com/legertom/dnsprop)
 
 ## Features
-- Query multiple record types: A, AAAA, CNAME, TXT, MX, NS, SOA
-- Parallel resolver queries with per‑resolver latency and TTLs
-- Optional DNSSEC, DNS over UDP/TCP, and DoH (future)
-- Caching and rate limiting to protect upstreams
-- Clean React UI, Go API, deployable on Railway
+
+### DNS Querying
+- **7 supported record types**: A, AAAA, CNAME, TXT, MX, NS, SOA
+- **30+ global DNS resolvers** across 5 continents by default
+- **Parallel queries** to all resolvers simultaneously for fast results
+- **Custom resolver support** - specify up to 50 custom DNS servers per query
+- **DNSSEC validation** - optional DNSSEC checking with DO flag support
+- **Automatic TCP fallback** - retries over TCP if UDP response is truncated
+- **Per-resolver metrics**: Round-trip time (RTT) and TTL for each answer
+
+### Propagation Analysis
+- **Propagation statistics**: Total servers, successful responses, propagation percentage
+- **Answer group detection**: Automatically groups servers by identical answers
+- **Visual propagation status**: "Fully Propagated" vs "Mixed Results" indicators
+- **Color-coded results**: Table rows and map markers colored by answer groups
+- **Detailed breakdown**: Shows count of servers per answer group
+
+### Interactive Map Visualization
+- **Global server map** with geographic markers for all resolvers
+- **Color-coded markers** matching answer groups in the table
+- **Interactive tooltips** on hover showing server, region, status, RTT, and answers
+- **Zoomable map** with pan controls
+- **Status-based colors** when answer grouping isn't available
+
+### Results Table
+- **Sortable columns**: Server name, status, and RTT
+- **Status badges**: Visual indicators for ok, error, timeout, nxdomain, servfail, noanswer
+- **Color-coded rows**: Matched to answer groups for easy pattern recognition
+- **Answer display**: Shows all answers with individual TTLs
+- **Authority servers**: Displays authoritative nameservers when available
+
+### Export & Sharing
+- **JSON export**: Download complete results as structured JSON
+- **CSV export**: Download results in spreadsheet-friendly format
+- **Timestamp included**: All exports include query timestamps
+
+### User Interface
+- **Modern design**: Glassmorphism UI with animated background elements
+- **Dark mode**: System-aware theme toggle with localStorage persistence
+- **Responsive layout**: Works on desktop, tablet, and mobile devices
+- **Real-time feedback**: Loading states, error messages, and status updates
+
+### Backend Features
+- **Response caching**: LRU cache with configurable TTL (default 30s)
+- **Rate limiting**: Per-IP token bucket rate limiting (default 1 RPS, burst 5)
+- **Request validation**: Validates domain names, record types, and server addresses
+- **Health checks**: `/api/healthz` for basic health, `/api/readyz` for readiness
+- **Structured logging**: JSON-formatted logs with request IDs
+- **CORS support**: Configurable allowed origins
+- **Geographic data**: Region and coordinates for resolvers
 
 ## Tech stack
-- Frontend: React + Vite + TypeScript
-- Backend: Go (chi or fiber), `miekg/dns` for DNS, `slog`/`zerolog` for logs
-- Packaging: Monorepo (web + api)
-- Deploy: Railway (two services: `web`, `api`)
+- **Frontend**: React 18 + Vite + TypeScript, Tailwind CSS, react-simple-maps
+- **Backend**: Go 1.22+, Chi router, `miekg/dns` library, structured logging with `slog`
+- **Packaging**: Monorepo structure (web + api)
+- **Deploy**: Railway (two services: `web`, `api`)
+- **DNS Protocol**: UDP with automatic TCP fallback, EDNS0 support, DNSSEC capability
 
 ## Repository layout
 ```
@@ -61,49 +107,75 @@ Backend default: http://localhost:8080  •  Frontend default: http://localhost:
 
 ### Environment variables
 Backend (`api/.env`):
-- PORT=8080
-- LOG_LEVEL=info
-- CORS_ORIGINS=http://localhost:5173
-- RESOLVERS=1.1.1.1,8.8.8.8,9.9.9.9,208.67.222.222
-- REQUEST_TIMEOUT=2s
-- CACHE_TTL=30s
-- CACHE_MAX_ENTRIES=5000
-- ENABLE_DNSSEC=false
-- METRICS_ADDR=:9090
+- `PORT=8080` - Server port (Railway auto-injects)
+- `LOG_LEVEL=info` - Logging level (debug, info, warn, error)
+- `CORS_ORIGINS=http://localhost:5173` - Allowed CORS origins (comma-separated)
+- `RESOLVERS=1.1.1.1,8.8.8.8,...` - DNS resolver list (30+ by default)
+- `REQUEST_TIMEOUT=2s` - Maximum request timeout
+- `CACHE_TTL=30s` - Cache entry TTL
+- `CACHE_MAX_ENTRIES=5000` - Maximum cache entries
+- `ENABLE_DNSSEC=false` - Enable DNSSEC globally (can also be per-request)
+- `RATE_LIMIT_RPS=1.0` - Rate limit requests per second per IP
+- `RATE_LIMIT_BURST=5` - Rate limit burst capacity
+- `RATE_LIMIT_TTL=10m` - Rate limit client TTL
 
 Frontend (`web/.env.local`):
 - VITE_API_BASE_URL=http://localhost:8080
 
-## HTTP API (draft)
-- POST /api/resolve
-  Request:
-  ```json
-  {
-    "name": "example.com",
-    "type": "A",
-    "servers": ["1.1.1.1", "8.8.8.8"],
-    "dnssec": false
-  }
-  ```
-  Response:
-  ```json
-  {
-    "name": "example.com",
-    "type": "A",
-    "results": [
-      {
-        "server": "1.1.1.1",
-        "region": "Global/Cloudflare",
-        "status": "ok",
-        "rtt_ms": 12.4,
-        "answers": [ {"value": "93.184.216.34", "ttl": 300} ],
-        "authority": ["ns1.example.net."],
-        "when": "2025-11-01T20:00:00Z"
-      }
-    ]
-  }
-  ```
-- GET /api/healthz → 200 OK
+## HTTP API
+
+### POST /api/resolve
+Query DNS records across multiple resolvers.
+
+**Request:**
+```json
+{
+  "name": "example.com",
+  "type": "A",
+  "servers": ["1.1.1.1", "8.8.8.8"],  // Optional: defaults to configured resolvers
+  "dnssec": false  // Optional: enable DNSSEC validation
+}
+```
+
+**Response:**
+```json
+{
+  "name": "example.com",
+  "type": "A",
+  "results": [
+    {
+      "server": "1.1.1.1",
+      "region": "Global/Cloudflare",
+      "latitude": -37.7,
+      "longitude": 145.1833,
+      "status": "ok",
+      "rtt_ms": 12.4,
+      "answers": [
+        {"value": "93.184.216.34", "ttl": 300}
+      ],
+      "authority": ["ns1.example.net."],
+      "when": "2025-11-01T20:00:00Z"
+    }
+  ]
+}
+```
+
+**Status values**: `ok`, `error`, `timeout`, `nxdomain`, `servfail`, `noanswer`
+
+### GET /api/healthz
+Basic health check. Always returns 200 OK.
+
+### GET /api/readyz
+Readiness check. Probes a subset of resolvers and returns:
+- **200 OK**: At least one resolver is responding
+- **503 Service Unavailable**: All probed resolvers are failing
+
+**Response:**
+```json
+{
+  "status": "ok"  // or "degraded"
+}
+```
 
 Example curl:
 ```
@@ -165,12 +237,30 @@ Option B — create two services in dashboard, set the same build/start commands
 
 ## Development Status
 
-This project is approximately **75-80% complete**. For detailed development instructions, progress tracking, and completion roadmap, see **[docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md)**.
+This project is **~90% complete** and **production-ready**. For detailed development instructions, progress tracking, and completion roadmap, see **[docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md)**.
 
-Quick status:
-- ✅ Backend API: ~90% complete (excellent)
-- ✅ Frontend UI: ~85% complete (modern design with wtfdns branding)
-- 🎯 Next priorities: Expanded resolver pool, streaming results
+**Current Status:**
+- ✅ **Backend API**: ~95% complete - All core features implemented, production-ready
+- ✅ **Frontend UI**: ~90% complete - Modern design with wtfdns branding, fully functional
+- ✅ **DNS Features**: All record types supported, DNSSEC enabled, 30+ resolvers configured
+- ✅ **Visualization**: Interactive map with color-coded markers and tooltips
+- ✅ **Deployment**: Successfully deployed on Railway with custom domain (wtfdns.lol)
+
+**What's Working:**
+- Parallel DNS queries across 30+ global resolvers
+- Propagation analysis with answer group detection
+- Interactive map visualization
+- Export functionality (JSON/CSV)
+- Dark mode and responsive design
+- Rate limiting and caching
+- Health and readiness checks
+
+**Future Enhancements:**
+- Streaming results (SSE/WebSocket) as resolvers finish
+- DNS over HTTPS (DoH) support
+- Per-region resolver pools
+- Query history and persistence
+- Metrics export (Prometheus) and tracing
 
 ## Documentation
 
