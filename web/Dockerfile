@@ -29,9 +29,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/templates
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-# Default port (overridden by Railway)
-ENV PORT=8080
-EXPOSE 8080
+# Default port (Railway overrides this with its injected PORT)
+ENV PORT=80
+EXPOSE 80
 
 # Render config with $PORT and start nginx
 CMD ["/bin/sh", "-c", "envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]

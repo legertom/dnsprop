@@ -21,7 +21,8 @@ WORKDIR /root/
 # Copy the binary from builder
 COPY --from=builder /app/dnsprop-api .
 
-EXPOSE 8080
+# Railway provides PORT dynamically (Railway overrides this default)
+ENV PORT=8080
 
 CMD ["./dnsprop-api"]
 
