@@ -1,4 +1,4 @@
-# dnsprop Development Instructions
+# wtfdns Development Instructions
 
 **Last Updated:** November 2, 2025 (Session 5)
 **Status:** 99% Complete - Production Ready
@@ -16,15 +16,15 @@ If you're starting a new conversation:
 6. Continue with next unchecked items in the "Completion Plan"
 
 ### 📚 Additional Documentation Files
-- **`SESSION_3_SUMMARY.md`** - ⭐ Quick overview of Session 3 achievements
+- **`sessions/SESSION_3_SUMMARY.md`** - ⭐ Quick overview of Session 3 achievements
 - **`COMPLETED_WORK.md`** - Comprehensive technical details of Session 3 work
 - **`TODO.md`** - Quick reference checklist with current status
-- **`RAILWAY_DEPLOYMENT.md`** - Detailed Railway deployment guide
-- **`docs/ARCHITECTURE.md`** - System architecture and design decisions
-- **`README.md`** - Main project documentation
+- **`deployment/RAILWAY_DEPLOYMENT.md`** - Detailed Railway deployment guide
+- **`ARCHITECTURE.md`** - System architecture and design decisions
+- **`../README.md`** - Main project documentation
 
 **📖 Recommended Reading Order:**
-1. `SESSION_3_SUMMARY.md` - Quick overview (5 min read)
+1. `sessions/SESSION_3_SUMMARY.md` - Quick overview (5 min read)
 2. This file (`INSTRUCTIONS.md`) - Full development guide
 3. `COMPLETED_WORK.md` - Detailed technical changes
 

@@ -30,6 +30,7 @@ RUN mkdir -p /etc/nginx/templates
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Default port (Railway overrides this with its injected PORT)
+# Railway will inject PORT env var at runtime
 ENV PORT=80
 EXPOSE 80
 

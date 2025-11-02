@@ -28,7 +28,7 @@ This project has comprehensive documentation. Here's what to read and when:
 - **Time:** 15-20 minutes
 - **Purpose:** Architecture principles and technical design
 
-### 5. **SESSION_LOG.md** 📝
+### 5. **`sessions/SESSION_LOG.md`** 📝
 - **When:** Checking what was done in previous sessions
 - **Time:** 2-3 minutes per session
 - **Purpose:** Track progress and decisions made
@@ -152,7 +152,8 @@ dnsprop/
 │
 ├── INSTRUCTIONS.md           # ⭐ Main development guide
 ├── TODO.md                   # 📋 Quick checklist
-├── SESSION_LOG.md            # 📝 Progress tracking
+├── sessions/                 # Session summaries
+│  └── SESSION_LOG.md         # 📝 Progress tracking
 ├── README.md                 # 📖 Setup & deployment
 ├── QUICKSTART.md             # 🚀 You are here!
 ├── Makefile                  # Build commands

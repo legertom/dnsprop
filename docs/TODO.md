@@ -118,7 +118,7 @@ Quick reference checklist. See [INSTRUCTIONS.md](INSTRUCTIONS.md) for detailed i
 - [x] Fix Dockerfiles for Railway (Go version, Vite build args)
 - [x] Create .env.example files
 - [x] Document Railway deployment process
-- [ ] Actually deploy to Railway (see RAILWAY_DEPLOYMENT.md)
+- [ ] Actually deploy to Railway (see `deployment/RAILWAY_DEPLOYMENT.md`)
 
 **Status: ✅ READY TO DEPLOY**
 
@@ -169,10 +169,10 @@ When you complete a task:
 
 ## 📚 Related Documentation
 
-- **`SESSION_3_SUMMARY.md`** - ⭐ Quick overview of Session 3 achievements
+- **`sessions/SESSION_3_SUMMARY.md`** - ⭐ Quick overview of Session 3 achievements
 - **`COMPLETED_WORK.md`** - Detailed technical summary of Session 3
 - **`INSTRUCTIONS.md`** - Main development guide with all details
-- **`RAILWAY_DEPLOYMENT.md`** - Deployment instructions
+- **`deployment/RAILWAY_DEPLOYMENT.md`** - Deployment instructions
 - **`README.md`** - Project overview and setup
 
 ---

@@ -1,6 +1,8 @@
-# dnsprop
+# wtfdns
 
 DNS propagation checker — query many public resolvers worldwide and see when your DNS changes have propagated.
+
+**Live at:** [https://wtfdns.lol](https://wtfdns.lol) • **GitHub:** [https://github.com/legertom/dnsprop](https://github.com/legertom/dnsprop)
 
 ## Features
 - Query multiple record types: A, AAAA, CNAME, TXT, MX, NS, SOA
@@ -15,14 +17,25 @@ DNS propagation checker — query many public resolvers worldwide and see when y
 - Packaging: Monorepo (web + api)
 - Deploy: Railway (two services: `web`, `api`)
 
-## Repository layout (proposed)
+## Repository layout
 ```
 / (repo root)
-├─ web/                # React app (Vite, TS)
-├─ api/                # Go service (HTTP API)
-├─ docs/               # Architecture, ADRs, API schema
-├─ .github/            # CI workflows (optional)
-└─ railway.toml        # Monorepo services (optional)
+├─ web/                          # React app (Vite, TS)
+├─ api/                          # Go service (HTTP API)
+├─ docs/                         # Documentation
+│  ├─ ARCHITECTURE.md            # Architecture details
+│  ├─ INSTRUCTIONS.md            # Development instructions
+│  ├─ TODO.md                    # TODO checklist
+│  ├─ QUICKSTART.md              # Quick start guide
+│  ├─ COMPLETED_WORK.md          # Completed work log
+│  ├─ deployment/                # Deployment docs
+│  │  ├─ RAILWAY_DEPLOYMENT.md   # Railway deployment guide
+│  │  └─ RAILWAY_SUMMARY.txt     # Railway summary
+│  └─ sessions/                  # Session summaries
+│     ├─ SESSION_LOG.md          # Session logs
+│     └─ SESSION_*.md            # Individual session summaries
+├─ .github/                      # CI workflows (optional)
+└─ railway.toml                 # Monorepo services
 ```
 
 ## Local development
@@ -152,19 +165,21 @@ Option B — create two services in dashboard, set the same build/start commands
 
 ## Development Status
 
-This project is approximately **75-80% complete**. For detailed development instructions, progress tracking, and completion roadmap, see **[INSTRUCTIONS.md](INSTRUCTIONS.md)**.
+This project is approximately **75-80% complete**. For detailed development instructions, progress tracking, and completion roadmap, see **[docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md)**.
 
 Quick status:
 - ✅ Backend API: ~90% complete (excellent)
-- ⚠️ Frontend UI: ~70% complete (functional but needs polish)
-- 🎯 Next priorities: Environment files, expanded resolver pool, UI improvements
+- ✅ Frontend UI: ~85% complete (modern design with wtfdns branding)
+- 🎯 Next priorities: Expanded resolver pool, streaming results
 
-## Links
-- **Quick TODO Checklist:** `TODO.md` 📋 **Quick reference**
-- **Development Instructions & Progress:** `INSTRUCTIONS.md` ⭐ **Start here!**
-- Architecture details: `docs/ARCHITECTURE.md`
-- Deployment guide: See README sections above
-- Session logs: `SESSION_LOG.md`
+## Documentation
+
+- **Development Instructions:** [`docs/INSTRUCTIONS.md`](docs/INSTRUCTIONS.md) ⭐ **Start here!**
+- **Quick TODO Checklist:** [`docs/TODO.md`](docs/TODO.md) 📋 **Quick reference**
+- **Quick Start Guide:** [`docs/QUICKSTART.md`](docs/QUICKSTART.md)
+- **Architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **Railway Deployment:** [`docs/deployment/RAILWAY_DEPLOYMENT.md`](docs/deployment/RAILWAY_DEPLOYMENT.md)
+- **Session Logs:** [`docs/sessions/SESSION_LOG.md`](docs/sessions/SESSION_LOG.md)
 
 ## License
 MIT
