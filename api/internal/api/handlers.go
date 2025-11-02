@@ -27,6 +27,8 @@ type Answer struct {
 type Result struct {
 	Server    string   `json:"server"`
 	Region    string   `json:"region,omitempty"`
+	Latitude  float64  `json:"latitude"`
+	Longitude float64  `json:"longitude"`
 	Status    string   `json:"status"`
 	RTTMs     float64  `json:"rtt_ms,omitempty"`
 	Answers   []Answer `json:"answers,omitempty"`
@@ -129,11 +131,13 @@ func ResolveHandler(cfg *config.Config, cache resolver.Cache) http.HandlerFunc {
 		out := ResolveResponse{Name: req.Name, Type: req.Type, Results: make([]Result, 0, len(results))}
 		for _, rr := range results {
 			res := Result{
-				Server: rr.Server,
-				Region: rr.Region,
-				Status: rr.Status,
-				RTTMs:  rr.RTTMs,
-				When:   rr.When.UTC().Format(time.RFC3339),
+				Server:    rr.Server,
+				Region:    rr.Region,
+				Latitude:  rr.Latitude,
+				Longitude: rr.Longitude,
+				Status:    rr.Status,
+				RTTMs:     rr.RTTMs,
+				When:      rr.When.UTC().Format(time.RFC3339),
 			}
 			if len(rr.Answers) > 0 {
 				ans := make([]Answer, 0, len(rr.Answers))

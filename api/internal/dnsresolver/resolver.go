@@ -17,6 +17,8 @@ type Answer struct {
 type Result struct {
 	Server    string
 	Region    string
+	Latitude  float64
+	Longitude float64
 	Status    string
 	RTTMs     float64
 	Answers   []Answer
@@ -29,45 +31,119 @@ type Result struct {
 }
 
 var defaultRegions = map[string]string{
-	// North America
-	"1.1.1.1":         "US/Cloudflare",
-	"1.0.0.1":         "US/Cloudflare",
-	"8.8.8.8":         "US/Google",
-	"8.8.4.4":         "US/Google",
-	"9.9.9.9":         "US/Quad9",
-	"149.112.112.112": "US/Quad9",
-	"208.67.222.222":  "US/OpenDNS",
-	"208.67.220.220":  "US/OpenDNS",
-	"64.6.64.6":       "US/Verisign",
-	"64.6.65.6":       "US/Verisign",
+	// North America - US West
+	"1.1.1.1":         "San Francisco, CA, Cloudflare",
+	"1.0.0.1":         "San Francisco, CA, Cloudflare",
+	"8.8.8.8":         "Mountain View, CA, Google",
+	"8.8.4.4":         "Mountain View, CA, Google",
+	"9.9.9.9":         "Berkeley, CA, Quad9",
+	"149.112.112.112": "Berkeley, CA, Quad9",
+	"208.67.222.222":  "San Francisco, CA, OpenDNS",
+	"208.67.220.220":  "San Francisco, CA, OpenDNS",
 	
-	// Europe
-	"94.140.14.14":    "EU/AdGuard",
-	"94.140.15.15":    "EU/AdGuard",
-	"185.228.168.9":   "EU/CleanBrowsing",
-	"185.228.169.9":   "EU/CleanBrowsing",
-	"77.88.8.8":       "EU/Yandex",
-	"77.88.8.1":       "EU/Yandex",
+	// North America - US East
+	"156.154.70.1":    "Ashburn, VA, Neustar",
+	"156.154.71.1":    "Ashburn, VA, Neustar",
+	"4.2.2.1":         "Broomfield, CO, Level3",
+	"4.2.2.2":         "Broomfield, CO, Level3",
 	
-	// Asia
-	"114.114.114.114": "CN/114DNS",
-	"114.114.115.115": "CN/114DNS",
-	"223.5.5.5":       "CN/AliDNS",
-	"223.6.6.6":       "CN/AliDNS",
-	"168.95.1.1":      "TW/HiNet",
-	"168.95.192.1":    "TW/HiNet",
+	// North America - Canada
+	"76.76.2.0":  "Toronto, ON, ControlD",
+	"76.76.10.0": "Toronto, ON, ControlD",
+	
+	// Europe - Western
+	"94.140.14.14":  "Limassol, Cyprus, AdGuard",
+	"94.140.15.15":  "Limassol, Cyprus, AdGuard",
+	"185.228.168.9": "Amsterdam, Netherlands, CleanBrowsing",
+	"185.228.169.9": "Amsterdam, Netherlands, CleanBrowsing",
+	
+	// Europe - Eastern
+	"77.88.8.8": "Moscow, Russia, Yandex",
+	"77.88.8.1": "Moscow, Russia, Yandex",
+	
+	// Asia - China
+	"114.114.114.114": "Nanjing, Jiangsu, 114DNS",
+	"114.114.115.115": "Nanjing, Jiangsu, 114DNS",
+	"223.5.5.5":       "Hangzhou, Zhejiang, Alibaba DNS",
+	"223.6.6.6":       "Hangzhou, Zhejiang, Alibaba DNS",
+	"119.29.29.29":    "Shenzhen, Guangdong, DNSPod",
+	
+	// Asia - Taiwan
+	"168.95.1.1":   "Taipei, Taiwan, HiNet",
+	"168.95.192.1": "Taipei, Taiwan, HiNet",
 	
 	// Asia-Pacific
-	"1.1.1.2":         "AP/Cloudflare",
-	"1.0.0.2":         "AP/Cloudflare",
-	
-	// Oceania
-	"210.2.4.8":       "AU/Telstra",
-	"139.130.4.5":     "AU/Aussie",
+	"1.1.1.2": "Sydney, NSW, Cloudflare",
+	"1.0.0.2": "Sydney, NSW, Cloudflare",
 	
 	// South America
-	"200.252.98.162":  "BR/GVT",
-	"200.221.11.100":  "BR/NET",
+	"200.221.11.100": "Rio de Janeiro, Brazil, NET",
+}
+
+// serverCoordinates maps DNS server IPs to their approximate datacenter locations [latitude, longitude]
+// These coordinates represent major datacenter/city locations for each DNS provider
+var serverCoordinates = map[string][2]float64{
+	// North America - US West - Cloudflare (San Francisco)
+	"1.1.1.1": {37.7749, -122.4194},
+	"1.0.0.1": {37.7849, -122.4094}, // Slightly offset
+	
+	// North America - US West - Google (Mountain View, CA)
+	"8.8.8.8": {37.4220, -122.0841},
+	"8.8.4.4": {37.4320, -122.0741}, // Slightly offset
+	
+	// North America - US West - Quad9 (Berkeley, CA)
+	"9.9.9.9":         {37.8715, -122.2730},
+	"149.112.112.112": {37.8815, -122.2630}, // Slightly offset
+	
+	// North America - US West - OpenDNS/Cisco (San Francisco)
+	"208.67.222.222": {37.7849, -122.4394},
+	"208.67.220.220": {37.7949, -122.4294}, // Slightly offset
+	
+	// North America - US East - Neustar/UltraDNS (Ashburn, VA)
+	"156.154.70.1": {39.0438, -77.4874},
+	"156.154.71.1": {39.0538, -77.4774}, // Slightly offset
+	
+	// North America - US Central - Level3 (Broomfield, CO)
+	"4.2.2.1": {39.9142, -105.0519},
+	"4.2.2.2": {39.9242, -105.0419}, // Slightly offset
+	
+	// North America - Canada - ControlD (Toronto)
+	"76.76.2.0":  {43.6532, -79.3832},
+	"76.76.10.0": {43.6632, -79.3732}, // Slightly offset
+	
+	// Europe - Western - AdGuard (Limassol, Cyprus)
+	"94.140.14.14": {34.7070, 33.0220},
+	"94.140.15.15": {34.7170, 33.0320}, // Slightly offset
+	
+	// Europe - Western - CleanBrowsing (Amsterdam, Netherlands)
+	"185.228.168.9": {52.3676, 4.9041},
+	"185.228.169.9": {52.3776, 4.9141}, // Slightly offset
+	
+	// Europe - Eastern - Yandex (Moscow, Russia)
+	"77.88.8.8": {55.7558, 37.6173},
+	"77.88.8.1": {55.7658, 37.6273}, // Slightly offset
+	
+	// Asia - China - 114DNS (Nanjing)
+	"114.114.114.114": {32.0603, 118.7969},
+	"114.114.115.115": {32.0703, 118.8069}, // Slightly offset
+	
+	// Asia - China - AliDNS/Alibaba (Hangzhou)
+	"223.5.5.5": {30.2741, 120.1551},
+	"223.6.6.6": {30.2841, 120.1651}, // Slightly offset
+	
+	// Asia - China - DNSPod/Tencent (Shenzhen)
+	"119.29.29.29": {22.5431, 114.0579},
+	
+	// Asia - Taiwan - HiNet (Taipei)
+	"168.95.1.1":   {25.0330, 121.5654},
+	"168.95.192.1": {25.0430, 121.5754}, // Slightly offset
+	
+	// Asia-Pacific - Cloudflare (Sydney, Australia)
+	"1.1.1.2": {-33.8688, 151.2093},
+	"1.0.0.2": {-33.8588, 151.2193}, // Slightly offset
+	
+	// South America - NET (Rio de Janeiro, Brazil)
+	"200.221.11.100": {-22.9068, -43.1729},
 }
 
 // Cache defines the minimal interface used by resolver for caching.
@@ -128,9 +204,12 @@ func Resolve(ctx context.Context, name, qtype string, servers []string, dnssec b
 
 func queryOne(ctx context.Context, server, name, qtype string, dnssec bool, perQueryTimeout time.Duration) Result {
 	now := time.Now().UTC()
+	lat, lon := coordinatesFor(server)
 	result := Result{
 		Server:    normalizeServer(server),
 		Region:    regionFor(server),
+		Latitude:  lat,
+		Longitude: lon,
 		When:      now,
 		QueriedAt: now,
 	}
@@ -283,6 +362,18 @@ func regionFor(server string) string {
 		return label
 	}
 	return "Unknown"
+}
+
+func coordinatesFor(server string) (float64, float64) {
+	host, _, err := net.SplitHostPort(server)
+	if err != nil {
+		host = server
+	}
+	if coords, ok := serverCoordinates[host]; ok {
+		return coords[0], coords[1]
+	}
+	// Return 0,0 for unknown servers (will be filtered out on frontend)
+	return 0, 0
 }
 
 func normalizeServer(server string) string {

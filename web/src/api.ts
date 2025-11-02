@@ -11,6 +11,8 @@ export interface Answer { value: string; ttl?: number }
 export interface Result {
   server: string;
   region?: string;
+  latitude?: number;
+  longitude?: number;
   status: string;
   rtt_ms?: number;
   answers?: Answer[];

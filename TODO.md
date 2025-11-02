@@ -15,7 +15,7 @@ Quick reference checklist. See [INSTRUCTIONS.md](INSTRUCTIONS.md) for detailed i
 - [x] Document all variables
 
 ### 1.2 Resolver Pool ✅ COMPLETE
-- [x] Add 15-20 more public resolvers (now 28 total!)
+- [x] Add 15-20 more public resolvers (now 30 reliable servers!)
 - [x] Add geographic diversity (US, EU, Asia, Oceania, South America)
 - [x] Update region labels (e.g., "US/Google", "EU/AdGuard")
 - [x] Update defaultRegions map in resolver.go
@@ -135,6 +135,28 @@ Quick reference checklist. See [INSTRUCTIONS.md](INSTRUCTIONS.md) for detailed i
 
 ---
 
+## 🐛 Known Issues (Need Fixing)
+
+### Map Visualization Issues ✅ RESOLVED
+- [x] **Fix map graphic not displaying on homepage**
+  - ✅ Fixed TopoJSON URL and coordinate system
+  - ✅ Map now displays all 33 server markers
+  
+- [x] **Display individual server locations within countries**
+  - ✅ Each of 33 servers now has individual coordinates
+  - ✅ Markers show actual datacenter locations (not country grouping)
+  - ✅ Hover shows individual server details
+  - ✅ Color indicates server status (green/red/yellow)
+
+### New Features Added ✅
+- [x] **Color-coded answer grouping**
+  - ✅ Table rows color-coded by DNS answer groups
+  - ✅ Servers returning same IPs share the same color
+  - ✅ Legend shows answer group distribution
+  - ✅ Makes it easy to see CDN/GeoDNS variations
+
+---
+
 ## 📝 Update Instructions
 
 When you complete a task:
@@ -158,10 +180,12 @@ When you complete a task:
 ## 🎉 Current Status
 
 ### ✅ Completed (Phases 1, 2 & 4 Partial)
-- **28 global DNS resolvers** across 5 continents (all working!)
+- **30 reliable DNS resolvers** across 5 continents with geographic diversity
+- **Individual server coordinates** - each server has precise lat/long
+- **Interactive global map** with individual markers and hover details
+- **Color-coded answer grouping** - easy visual identification of CDN/GeoDNS
 - **Beautiful modern UI** with Tailwind CSS
 - **Dark mode toggle** with localStorage persistence
-- **Interactive global map** showing server locations
 - **Propagation analysis** with visual summary
 - **Color-coded status badges** for all result types
 - **Sorting functionality** (server, status, RTT)

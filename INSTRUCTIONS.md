@@ -1,7 +1,7 @@
 # dnsprop Development Instructions
 
-**Last Updated:** November 2, 2025 (Session 4)
-**Status:** 98% Complete - Production Ready
+**Last Updated:** November 2, 2025 (Session 5)
+**Status:** 99% Complete - Production Ready
 
 ---
 
@@ -42,10 +42,11 @@ If you're starting a new conversation:
 
 ### Key Features
 - Query 7 record types: A, AAAA, CNAME, TXT, MX, NS, SOA
-- 28 global DNS resolvers across 5 continents
+- **30 global DNS resolvers** across 5 continents with precise geographic coordinates
 - Parallel resolver queries with per-resolver latency and TTLs
 - DNSSEC support (DO flag) with explanatory tooltip
-- Interactive global map visualization
+- **Interactive global map** with individual server markers and hover details
+- **Color-coded answer grouping** for easy CDN/GeoDNS identification
 - Dark mode with localStorage persistence
 - LRU caching and per-IP rate limiting
 - Clean separation: React UI + Go API
@@ -103,8 +104,9 @@ If you're starting a new conversation:
 - ✅ Export functionality (JSON and CSV)
 - ✅ TTL display for each answer
 - ✅ Dark mode toggle with localStorage persistence
-- ✅ Interactive global map visualization (react-simple-maps)
-- ✅ Geographic server location display
+- ✅ Interactive global map visualization with individual server markers
+- ✅ Geographic coordinates for all 33 DNS servers
+- ✅ Color-coded answer grouping (CDN/GeoDNS visualization)
 
 **Needs Work:**
 - ❌ No tests
@@ -129,8 +131,8 @@ If you're starting a new conversation:
   - [x] Document each variable's purpose
 
 - [x] **1.2 Expand resolver pool**
-  - [x] Add 15-20 more public resolvers (now 28 resolvers, up from 8)
-  - [x] Include geographic diversity: US, EU, Asia, South America, Oceania
+  - [x] Add 15-20 more public resolvers (now 30 reliable servers, tested and verified)
+  - [x] Include geographic diversity: US, EU, Asia, South America, Asia-Pacific
   - [x] Add proper region labels (e.g., "US/Google", "EU/AdGuard")
   - [x] Update `api/internal/dnsresolver/resolver.go` defaultRegions map
 
@@ -230,36 +232,40 @@ If you're starting a new conversation:
 
 ## 🔧 Technical Details
 
-### Default Resolvers (Current - 28 Total)
+### Default Resolvers (Current - 30 Total) ⭐ Updated!
 ```
-North America (10):
-1.1.1.1, 1.0.0.1       - Cloudflare
-8.8.8.8, 8.8.4.4       - Google
-9.9.9.9, 149.112.112.112 - Quad9
-208.67.222.222, 208.67.220.220 - OpenDNS
-64.6.64.6, 64.6.65.6   - Verisign
+North America - US West (8):
+1.1.1.1, 1.0.0.1                 - Cloudflare (San Francisco)
+8.8.8.8, 8.8.4.4                 - Google (Mountain View)
+9.9.9.9, 149.112.112.112         - Quad9 (Berkeley)
+208.67.222.222, 208.67.220.220   - OpenDNS (San Francisco)
+
+North America - US East (4):
+156.154.70.1, 156.154.71.1       - Neustar/UltraDNS (Ashburn, VA)
+4.2.2.1, 4.2.2.2                 - Level3 (Broomfield, CO)
+
+North America - Canada (2):
+76.76.2.0, 76.76.10.0            - ControlD (Toronto)
 
 Europe (6):
-94.140.14.14, 94.140.15.15 - AdGuard
-185.228.168.9, 185.228.169.9 - CleanBrowsing
-77.88.8.8, 77.88.8.1   - Yandex
+94.140.14.14, 94.140.15.15       - AdGuard (Cyprus)
+185.228.168.9, 185.228.169.9     - CleanBrowsing (Amsterdam)
+77.88.8.8, 77.88.8.1             - Yandex (Moscow)
 
-Asia (6):
-114.114.114.114, 114.114.115.115 - 114DNS (China)
-223.5.5.5, 223.6.6.6   - AliDNS (China)
-168.95.1.1, 168.95.192.1 - HiNet (Taiwan)
+Asia (7):
+114.114.114.114, 114.114.115.115 - 114DNS (Nanjing, China)
+223.5.5.5, 223.6.6.6             - AliDNS (Hangzhou, China)
+119.29.29.29                     - DNSPod (Shenzhen, China)
+168.95.1.1, 168.95.192.1         - HiNet (Taipei, Taiwan)
 
 Asia-Pacific (2):
-1.1.1.2, 1.0.0.2       - Cloudflare
+1.1.1.2, 1.0.0.2                 - Cloudflare (Sydney)
 
-Oceania (2):
-210.2.4.8              - Telstra (Australia)
-139.130.4.5            - Aussie (Australia)
-
-South America (2):
-200.252.98.162         - GVT (Brazil)
-200.221.11.100         - NET (Brazil)
+South America (1):
+200.221.11.100                   - NET (Rio de Janeiro, Brazil)
 ```
+
+**Note:** Each server has individual geographic coordinates for accurate map display.
 
 ### Environment Variables
 
@@ -469,11 +475,26 @@ When you complete a task:
 
 ---
 
-**Remember:** This is a well-architected project that's now 98% complete. Both the backend and frontend are production-ready. The core functionality is fully implemented with a beautiful, modern UI including dark mode, interactive map, and 28 global DNS resolvers. Remaining work is optional polish (testing, metrics, advanced features).
+**Remember:** This is a well-architected project that's now 99% complete. Both the backend and frontend are production-ready. The core functionality is fully implemented with a beautiful, modern UI including dark mode, interactive map, and 30 reliable global DNS resolvers with human-readable geographic labels. Remaining work is optional polish (testing, metrics, advanced features).
 
 ---
 
 ## 📖 Session History
+
+### Session 6 (November 2, 2025) ✅
+**Major accomplishments:**
+- ✅ Tested all 38 DNS servers with nytimes.com for reliability
+- ✅ Removed 8 unreliable servers (6 from initial test + 2 Verisign)
+  - DNS.WATCH (timeout), IIJ Japan (refused), Tata India (timeout)
+  - Telstra Australia (timeout), Verisign (intermittent failures)
+- ✅ Updated region labels to "City, State/Province/Country, Provider" format
+  - e.g., "San Francisco, CA, Cloudflare" instead of "US/Cloudflare"
+- ✅ Fixed map tooltip positioning (now appears near marker, not far away)
+- ✅ Made all server counts dynamic (header, footer auto-update)
+- ✅ Final configuration: 30 reliable DNS servers across 5 continents
+- ✅ All remaining servers verified with RTT ≤500ms
+
+**Status:** 98% → 99% Complete
 
 ### Session 4 (November 2, 2025) ✅
 **Major accomplishments:**

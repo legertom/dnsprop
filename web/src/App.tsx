@@ -200,6 +200,31 @@ export default function App() {
 
   const stats = data ? calculatePropagationStats(data.results) : null
 
+  // Color palette for answer groups (8 distinct colors)
+  const answerGroupColors = [
+    { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-l-4 border-blue-500', text: 'text-blue-700 dark:text-blue-300' },
+    { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-l-4 border-purple-500', text: 'text-purple-700 dark:text-purple-300' },
+    { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-l-4 border-green-500', text: 'text-green-700 dark:text-green-300' },
+    { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-l-4 border-orange-500', text: 'text-orange-700 dark:text-orange-300' },
+    { bg: 'bg-pink-50 dark:bg-pink-900/20', border: 'border-l-4 border-pink-500', text: 'text-pink-700 dark:text-pink-300' },
+    { bg: 'bg-teal-50 dark:bg-teal-900/20', border: 'border-l-4 border-teal-500', text: 'text-teal-700 dark:text-teal-300' },
+    { bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-l-4 border-indigo-500', text: 'text-indigo-700 dark:text-indigo-300' },
+    { bg: 'bg-rose-50 dark:bg-rose-900/20', border: 'border-l-4 border-rose-500', text: 'text-rose-700 dark:text-rose-300' },
+  ]
+
+  // Create a map of answer key to color index
+  const getAnswerGroupColor = (result: Result) => {
+    if (!stats || !result.answers || result.answers.length === 0 || result.status !== 'ok') {
+      return null
+    }
+    
+    const answerKey = result.answers.map(a => a.value).sort().join('|')
+    const uniqueAnswers = Array.from(stats.uniqueAnswers.keys())
+    const colorIndex = uniqueAnswers.indexOf(answerKey)
+    
+    return colorIndex >= 0 ? answerGroupColors[colorIndex % answerGroupColors.length] : null
+  }
+
   const exportJSON = () => {
     if (!data) return
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -247,7 +272,7 @@ export default function App() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>28 global DNS servers</span>
+                <span>{data ? data.results.length : 30} global DNS servers</span>
               </div>
               <button
                 onClick={toggleDarkMode}
@@ -409,6 +434,37 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Answer Group Legend */}
+              {stats && stats.uniqueAnswers.size > 1 && (
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
+                        Color-Coded Answer Groups
+                      </h4>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
+                        Rows are color-coded by answer groups. Servers returning the same IP addresses share the same color.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {Array.from(stats.uniqueAnswers.entries()).map(([answerKey, servers], idx) => {
+                          const color = answerGroupColors[idx % answerGroupColors.length]
+                          return (
+                            <div key={idx} className={`flex items-center space-x-2 px-3 py-2 rounded ${color.bg} ${color.border}`}>
+                              <span className={`text-xs font-medium ${color.text}`}>
+                                {servers.length} server{servers.length > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
@@ -461,11 +517,16 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {sortedResults.map((r, i) => (
-                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{r.server}</div>
-                        </td>
+                    {sortedResults.map((r, i) => {
+                      const colorGroup = getAnswerGroupColor(r)
+                      return (
+                        <tr 
+                          key={i} 
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ${colorGroup ? `${colorGroup.bg} ${colorGroup.border}` : ''}`}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{r.server}</div>
+                          </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-600 dark:text-gray-400">{r.region || '-'}</div>
                         </td>
@@ -491,8 +552,9 @@ export default function App() {
                             <span className="text-sm text-gray-400 dark:text-gray-500">No answers</span>
                           )}
                         </td>
-                      </tr>
-                    ))}
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -504,7 +566,7 @@ export default function App() {
       {/* Footer */}
       <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-12">
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>Powered by 28 global DNS resolvers across 5 continents</p>
+          <p>Powered by {data ? data.results.length : 30} global DNS resolvers across 5 continents</p>
         </div>
       </footer>
     </div>
