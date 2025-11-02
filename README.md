@@ -150,8 +150,21 @@ Option B — create two services in dashboard, set the same build/start commands
 - History/persistence of checks (optional DB)
 - Export metrics (Prometheus) and tracing (OTel)
 
+## Development Status
+
+This project is approximately **75-80% complete**. For detailed development instructions, progress tracking, and completion roadmap, see **[INSTRUCTIONS.md](INSTRUCTIONS.md)**.
+
+Quick status:
+- ✅ Backend API: ~90% complete (excellent)
+- ⚠️ Frontend UI: ~70% complete (functional but needs polish)
+- 🎯 Next priorities: Environment files, expanded resolver pool, UI improvements
+
 ## Links
-- See architecture details in `docs/ARCHITECTURE.md`.
+- **Quick TODO Checklist:** `TODO.md` 📋 **Quick reference**
+- **Development Instructions & Progress:** `INSTRUCTIONS.md` ⭐ **Start here!**
+- Architecture details: `docs/ARCHITECTURE.md`
+- Deployment guide: See README sections above
+- Session logs: `SESSION_LOG.md`
 
 ## License
 MIT

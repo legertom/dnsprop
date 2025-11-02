@@ -9,7 +9,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Accept build arg for API URL (Railway will pass this as env var)
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+# Build the application with API URL baked in
 RUN npm run build
 
 # Production stage

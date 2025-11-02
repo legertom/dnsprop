@@ -29,14 +29,45 @@ type Result struct {
 }
 
 var defaultRegions = map[string]string{
-	"1.1.1.1":         "Cloudflare",
-	"1.0.0.1":         "Cloudflare",
-	"8.8.8.8":         "Google",
-	"8.8.4.4":         "Google",
-	"9.9.9.9":         "Quad9",
-	"149.112.112.112": "Quad9",
-	"208.67.222.222":  "OpenDNS",
-	"208.67.220.220":  "OpenDNS",
+	// North America
+	"1.1.1.1":         "US/Cloudflare",
+	"1.0.0.1":         "US/Cloudflare",
+	"8.8.8.8":         "US/Google",
+	"8.8.4.4":         "US/Google",
+	"9.9.9.9":         "US/Quad9",
+	"149.112.112.112": "US/Quad9",
+	"208.67.222.222":  "US/OpenDNS",
+	"208.67.220.220":  "US/OpenDNS",
+	"64.6.64.6":       "US/Verisign",
+	"64.6.65.6":       "US/Verisign",
+	
+	// Europe
+	"94.140.14.14":    "EU/AdGuard",
+	"94.140.15.15":    "EU/AdGuard",
+	"185.228.168.9":   "EU/CleanBrowsing",
+	"185.228.169.9":   "EU/CleanBrowsing",
+	"77.88.8.8":       "EU/Yandex",
+	"77.88.8.1":       "EU/Yandex",
+	
+	// Asia
+	"114.114.114.114": "CN/114DNS",
+	"114.114.115.115": "CN/114DNS",
+	"223.5.5.5":       "CN/AliDNS",
+	"223.6.6.6":       "CN/AliDNS",
+	"168.95.1.1":      "TW/HiNet",
+	"168.95.192.1":    "TW/HiNet",
+	
+	// Asia-Pacific
+	"1.1.1.2":         "AP/Cloudflare",
+	"1.0.0.2":         "AP/Cloudflare",
+	
+	// Oceania
+	"210.2.4.8":       "AU/Telstra",
+	"139.130.4.5":     "AU/Aussie",
+	
+	// South America
+	"200.252.98.162":  "BR/GVT",
+	"200.221.11.100":  "BR/NET",
 }
 
 // Cache defines the minimal interface used by resolver for caching.
@@ -249,9 +280,9 @@ func regionFor(server string) string {
 		host = server
 	}
 	if label, ok := defaultRegions[host]; ok {
-		return "Global/" + label
+		return label
 	}
-	return ""
+	return "Unknown"
 }
 
 func normalizeServer(server string) string {

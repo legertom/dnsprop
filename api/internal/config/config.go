@@ -27,7 +27,7 @@ func Load() (*Config, error) {
 	cfg.Port = getenv("PORT", "8080")
 	cfg.LogLevel = getenv("LOG_LEVEL", "info")
 	cfg.CorsOrigins = splitAndTrim(getenv("CORS_ORIGINS", "http://localhost:5173"), ",")
-	cfg.Resolvers = splitAndTrim(getenv("RESOLVERS", "1.1.1.1,8.8.8.8,9.9.9.9,208.67.222.222"), ",")
+	cfg.Resolvers = splitAndTrim(getenv("RESOLVERS", "1.1.1.1,1.0.0.1,8.8.8.8,8.8.4.4,9.9.9.9,149.112.112.112,208.67.222.222,208.67.220.220,64.6.64.6,64.6.65.6,94.140.14.14,94.140.15.15,185.228.168.9,185.228.169.9,77.88.8.8,77.88.8.1,114.114.114.114,114.114.115.115,223.5.5.5,223.6.6.6,168.95.1.1,168.95.192.1,1.1.1.2,1.0.0.2,210.2.4.8,139.130.4.5,200.252.98.162,200.221.11.100"), ",")
 	if d, err := time.ParseDuration(getenv("REQUEST_TIMEOUT", "2s")); err == nil {
 		cfg.RequestTimeout = d
 	} else {
