@@ -14,13 +14,7 @@
     "ENABLE_DNSSEC",
     "METRICS_ADDR"
   ]
-  [services.api.build]
-  builder = "Docker"
-  dockerfilePath = "Dockerfile"
 
 [services.web]
   root = "web"
   env = ["VITE_API_BASE_URL"]
-  [services.web.build]
-  builder = "Docker"
-  dockerfilePath = "Dockerfile"
