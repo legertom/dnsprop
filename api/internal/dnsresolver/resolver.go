@@ -24,6 +24,7 @@ type Result struct {
 	Answers   []Answer
 	Authority []string
 	When      time.Time
+	AD        bool // Authenticated Data (DNSSEC)
 	// CacheTTL is the recommended TTL for this result; not serialized in API JSON
 	CacheTTL time.Duration `json:"-"`
 	// QueriedAt is when this result was originally obtained; not serialized, used for cache expiry
@@ -258,6 +259,8 @@ func queryOne(ctx context.Context, server, name, qtype string, dnssec bool, perQ
 	}
 
 	result.RTTMs = float64(rtt.Microseconds()) / 1000.0
+	// Capture DNSSEC AD bit if present
+	result.AD = r.AuthenticatedData
 
 	switch r.Rcode {
 	case dns.RcodeSuccess:

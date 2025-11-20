@@ -17,6 +17,7 @@ export interface Result {
   rtt_ms?: number;
   answers?: Answer[];
   authority?: string[];
+  ad?: boolean;
   when: string;
 }
 export interface ResolveResponse {

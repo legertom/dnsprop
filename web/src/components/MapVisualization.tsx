@@ -133,7 +133,8 @@ export default function MapVisualization({ results, stats }: MapVisualizationPro
     const answerCount = result.answers?.length || 0
     const rtt = result.rtt_ms ? `${result.rtt_ms.toFixed(1)}ms` : 'N/A'
     const answers = result.answers?.map(a => a.value).join(', ') || 'No answers'
-    const content = `${result.region || result.server}\n${result.status.toUpperCase()} • ${rtt}\n${answerCount} answer(s)\n${answers}`
+    const dnssec = result.ad ? ' • DNSSEC' : ''
+    const content = `${result.region || result.server}\n${result.status.toUpperCase()} • ${rtt}${dnssec}\n${answerCount} answer(s)\n${answers}`
     
     setTooltipContent(content)
     

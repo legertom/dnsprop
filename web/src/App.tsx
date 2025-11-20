@@ -556,7 +556,15 @@ export default function App() {
                           <div className="text-sm font-medium text-slate-600 dark:text-slate-400">{r.region || '-'}</div>
                         </td>
                         <td className="px-8 py-4 whitespace-nowrap">
-                          <StatusBadge status={r.status} />
+                          <div className="flex items-center space-x-2">
+                            <StatusBadge status={r.status} />
+                            {r.ad && (
+                              <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-700 flex items-center space-x-1">
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 2a1 1 0 01.514.143l6 3.333A1 1 0 0117 6v4.382a6 6 0 11-6-6 1 1 0 100-2zm0 4a4 4 0 104 4V7.236l-4-2.222L6 7.236V10a4 4 0 104-4zm-1 5a1 1 0 112 0v2a1 1 0 11-2 0v-2z" clipRule="evenodd"/></svg>
+                                <span>DNSSEC</span>
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-8 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-slate-900 dark:text-white">

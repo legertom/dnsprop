@@ -33,6 +33,7 @@ type Result struct {
 	RTTMs     float64  `json:"rtt_ms,omitempty"`
 	Answers   []Answer `json:"answers,omitempty"`
 	Authority []string `json:"authority,omitempty"`
+	AD        bool     `json:"ad,omitempty"`
 	When      string   `json:"when"`
 }
 
@@ -138,6 +139,7 @@ func ResolveHandler(cfg *config.Config, cache resolver.Cache) http.HandlerFunc {
 				Status:    rr.Status,
 				RTTMs:     rr.RTTMs,
 				When:      rr.When.UTC().Format(time.RFC3339),
+				AD:        rr.AD,
 			}
 			if len(rr.Answers) > 0 {
 				ans := make([]Answer, 0, len(rr.Answers))
