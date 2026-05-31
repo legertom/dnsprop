@@ -34,5 +34,9 @@ COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 ENV PORT=80
 EXPOSE 80
 
-# Render config with $PORT and start nginx
-CMD ["/bin/sh", "-c", "envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+# Render config with $PORT and start nginx.
+# IMPORTANT: pass '${PORT}' so envsubst ONLY substitutes PORT. A bare `envsubst`
+# also replaces nginx's own $uri (no such env var) with "", turning
+# `try_files $uri @index;` into the invalid `try_files @index;`, which makes
+# nginx refuse to start and Railway return 502.
+CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
